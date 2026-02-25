@@ -26,7 +26,7 @@ import {
     Edit2,
     Camera,
     Car,
-    License,
+    IdCard,
 } from "lucide-react";
 
 export default function LogisticsProfile({
@@ -326,7 +326,7 @@ export default function LogisticsProfile({
 
                                     {/* Driving License Number */}
                                     <div className="flex items-start gap-3">
-                                        <License className="w-5 h-5 text-gray-400 mt-0.5" />
+                                        <IdCard className="w-5 h-5 text-gray-400 mt-0.5" />
                                         <div>
                                             <p className="text-sm font-medium text-gray-500">
                                                 Driving License Number
@@ -421,7 +421,7 @@ export default function LogisticsProfile({
                                     {/* Driving License */}
                                     <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                                         <div className="flex items-center gap-3">
-                                            <License className="w-5 h-5 text-gray-400" />
+                                            <IdCard className="w-5 h-5 text-gray-400" />
                                             <div>
                                                 <p className="text-sm font-medium text-gray-900">
                                                     Driving License
