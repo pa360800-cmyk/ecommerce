@@ -20,12 +20,10 @@ RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 # Install PHP extensions
 RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
-
-# Fix: Disable all MPM modules except mpm_prefork (required for mod_php)
-RUN a2dismod mpm_event mpm_worker || true
-RUN a2enmod mpm_prefork
+# Fix: Properly disable all MPM modules and enable only mpm_prefork (required for mod_php)
+# This must be done in a single RUN command to avoid conflicts
+RUN a2dismod mpm_event mpm_worker mpm_prefork 2>/dev/null || true \
+    && a2enmod mpm_prefork rewrite
 
 # Set working directory
 WORKDIR /var/www/html
