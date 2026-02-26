@@ -23,17 +23,32 @@ fi
 
 # Wait for database (prevents crash if DB not ready yet)
 echo "Waiting for database connection..."
+timeout=60
+counter=0
 until php artisan migrate:status > /dev/null 2>&1; do
   sleep 2
+  counter=$((counter + 2))
+  if [ $counter -ge $timeout ]; then
+    echo "WARNING: Database connection timeout, continuing anyway..."
+    break
+  fi
 done
 
 echo "Caching configuration..."
 php artisan config:cache || true
-php artisan route:cache || true
-php artisan view:cache || true
+
+# DO NOT cache routes in production with Inertia - it breaks dynamic routing
+# php artisan route:cache || true
+
+# Clear and recompile views (important for Inertia)
+php artisan view:clear || true
 
 echo "Running migrations..."
 php artisan migrate --force || true
+
+# Create the PHP-FPM socket directory
+mkdir -p /var/run/php
+chown www-data:www-data /var/run/php
 
 echo "Container ready. Starting services..."
 

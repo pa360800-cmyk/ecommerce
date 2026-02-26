@@ -44,6 +44,22 @@ RUN npm run build
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 storage bootstrap/cache
 
+# Configure PHP-FPM to use Unix socket
+RUN mkdir -p /var/run/php \
+    && chown www-data:www-data /var/run/php
+
+# Create PHP-FPM config to use Unix socket
+RUN echo "[www]" > /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "listen = /var/run/php/php-fpm.sock" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "listen.owner = www-data" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "listen.group = www-data" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "listen.mode = 0660" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "pm = dynamic" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "pm.max_children = 10" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "pm.start_servers = 2" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "pm.min_spare_servers = 1" >> /usr/local/etc/php-fpm.d/zz-docker.conf \
+    && echo "pm.max_spare_servers = 3" >> /usr/local/etc/php-fpm.d/zz-docker.conf
+
 # Configure nginx
 COPY nginx.conf /etc/nginx/sites-available/default
 RUN rm -f /etc/nginx/sites-enabled/default && \
@@ -56,9 +72,6 @@ COPY supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 # Entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
-# Create php socket dir (safe even if unused)
-RUN mkdir -p /var/run/php
 
 # Railway uses 8080
 EXPOSE 8080
