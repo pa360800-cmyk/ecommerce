@@ -1,7 +1,7 @@
-# Use PHP 8.2 with FPM and nginx
+# Use PHP 8.2 FPM
 FROM php:8.2-fpm
 
-# Install system dependencies including nginx and supervisor
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -11,52 +11,57 @@ RUN apt-get update && apt-get install -y \
     zip \
     unzip \
     libzip-dev \
-    nodejs \
-    npm \
     default-mysql-client \
     supervisor \
     nginx \
+    gnupg \
+    ca-certificates \
+    lsb-release \
     && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
+
+# Install Node 18 (stable for Vite)
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
+    && apt-get install -y nodejs
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www/html
 
-# Copy application files
-COPY . /var/www/html
+# Copy app files
+COPY . .
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Set permissions
+# Install frontend dependencies
+RUN npm install
+
+# Build frontend (IMPORTANT for Inertia)
+RUN npm run build
+
+# Set correct permissions AFTER build
 RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 755 /var/www/html/storage \
-    && chmod -R 755 /var/www/html/bootstrap/cache
+    && chmod -R 775 storage bootstrap/cache
 
-# Install Node.js dependencies and build
-RUN npm install && npm run build
-
-# Copy nginx configuration
+# Configure nginx
 COPY nginx.conf /etc/nginx/sites-available/default
 RUN rm -f /etc/nginx/sites-enabled/default && \
     ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
-# Copy supervisor configuration
+# Configure supervisor
 RUN mkdir -p /etc/supervisor/conf.d
 COPY supervisor.conf /etc/supervisor/conf.d/supervisor.conf
 
-# Copy entrypoint script
+# Entrypoint
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Create php socket directory
+# Create php socket dir (safe even if unused)
 RUN mkdir -p /var/run/php
 
-# Expose port 80
+# Railway uses 8080
 EXPOSE 8080
 
-# Start supervisor
 ENTRYPOINT ["/entrypoint.sh"]
-CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisor.conf"]
+CMD ["/usr/bin/supervisord", "-n"]
