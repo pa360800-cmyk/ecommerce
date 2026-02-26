@@ -1,30 +1,41 @@
 #!/bin/sh
 
-set -e
+# Stop on undefined variables but DO NOT stop on command errors
+set -u
 
-# Create necessary directories
-mkdir -p storage/framework/sessions
-mkdir -p storage/framework/views
-mkdir -p storage/framework/cache
-mkdir -p bootstrap/cache
+echo "Starting Laravel container..."
+
+# Create required directories
+mkdir -p storage/framework/sessions \
+         storage/framework/views \
+         storage/framework/cache \
+         bootstrap/cache
 
 # Set permissions
 chown -R www-data:www-data storage bootstrap/cache
 chmod -R 775 storage bootstrap/cache
 
-# Ensure APP_KEY exists (fail fast if missing)
-if [ -z "$APP_KEY" ]; then
+# Ensure APP_KEY exists
+if [ -z "${APP_KEY:-}" ]; then
   echo "ERROR: APP_KEY is not set!"
   exit 1
 fi
 
-# Clear and cache configuration (production optimized)
-php artisan config:cache
-php artisan route:cache
-php artisan view:cache
+# Wait for database (prevents crash if DB not ready yet)
+echo "Waiting for database connection..."
+until php artisan migrate:status > /dev/null 2>&1; do
+  sleep 2
+done
 
-# Run migrations (safe for production)
-php artisan migrate --force
+echo "Caching configuration..."
+php artisan config:cache || true
+php artisan route:cache || true
+php artisan view:cache || true
 
-# Start the main process (supervisor or nginx/php-fpm)
+echo "Running migrations..."
+php artisan migrate --force || true
+
+echo "Container ready. Starting services..."
+
+# Start supervisor (nginx + php-fpm)
 exec "$@"
