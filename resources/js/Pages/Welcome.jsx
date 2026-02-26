@@ -14,6 +14,9 @@ import {
 import { useState, useEffect } from "react";
 
 export default function Welcome({ auth, laravelVersion, phpVersion }) {
+    // Ensure auth has a default structure to prevent undefined errors
+    const authUser = auth?.user ?? null;
+
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -272,7 +275,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 >
                                     Contact
                                 </a>
-                                {auth.user ? (
+                                {authUser ? (
                                     <Link
                                         href={route("dashboard")}
                                         className="bg-[#2d5016] text-white px-6 py-2.5 rounded-full hover:bg-[#7ddb52] transition-all flex items-center space-x-2 shadow-lg"
@@ -347,7 +350,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                             >
                                 Contact
                             </a>
-                            {auth.user ? (
+                            {authUser ? (
                                 <Link
                                     href={route("dashboard")}
                                     className="bg-[#2d5016] text-white px-6 py-3 rounded-full hover:bg-[#3d6622] transition-all flex items-center justify-center space-x-2"
@@ -413,7 +416,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 </p>
 
                                 <div className="flex flex-col sm:flex-row gap-4 pt-4 animate-fadeInUp delay-300">
-                                    {auth.user ? (
+                                    {authUser ? (
                                         <Link
                                             href={route("dashboard")}
                                             className="bg-white text-[#2d5016] px-8 py-4 rounded-full font-semibold hover:bg-gray-100 transition-all flex items-center justify-center space-x-2 shadow-xl"
@@ -583,7 +586,7 @@ export default function Welcome({ auth, laravelVersion, phpVersion }) {
                                 their fresh, quality agricultural products
                             </p>
                             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                {auth.user ? (
+                                {authUser ? (
                                     <Link
                                         href={route("dashboard")}
                                         className="bg-white text-[#2d5016] px-10 py-4 rounded-full font-bold hover:bg-gray-100 transition-all shadow-xl flex items-center justify-center space-x-2"

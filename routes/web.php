@@ -31,6 +31,9 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'auth' => [
+            'user' => auth()->user(),
+        ],
     ]);
 })->name('welcome');
 
