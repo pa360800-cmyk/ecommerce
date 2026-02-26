@@ -23,6 +23,10 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
+# Fix: Disable all MPM modules except mpm_prefork (required for mod_php)
+RUN a2dismod mpm_event mpm_worker mpm_itk
+RUN a2enmod mpm_prefork
+
 # Set working directory
 WORKDIR /var/www/html
 
