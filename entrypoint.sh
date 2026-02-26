@@ -1,24 +1,30 @@
-#!/bin/bash
+#!/bin/sh
+
+set -e
 
 # Create necessary directories
-mkdir -p /var/www/html/storage/framework/{sessions,views,cache}
-mkdir -p /var/www/html/bootstrap/cache
+mkdir -p storage/framework/sessions
+mkdir -p storage/framework/views
+mkdir -p storage/framework/cache
+mkdir -p bootstrap/cache
 
 # Set permissions
-chown -R www-data:www-data /var/www/html
-chmod -R 755 /var/www/html/storage
-chmod -R 755 /var/www/html/bootstrap/cache
+chown -R www-data:www-data storage bootstrap/cache
+chmod -R 775 storage bootstrap/cache
 
-# Generate application key if not exists
-php artisan key:generate --force
+# Ensure APP_KEY exists (fail fast if missing)
+if [ -z "$APP_KEY" ]; then
+  echo "ERROR: APP_KEY is not set!"
+  exit 1
+fi
 
-# Clear and rebuild caches
-php artisan config:clear
-php artisan cache:clear
-php artisan view:clear
+# Clear and cache configuration (production optimized)
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
 
-# Run migrations
+# Run migrations (safe for production)
 php artisan migrate --force
 
-# Execute the CMD
+# Start the main process (supervisor or nginx/php-fpm)
 exec "$@"

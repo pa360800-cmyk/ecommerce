@@ -40,7 +40,8 @@ RUN npm install && npm run build
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/sites-available/default
-RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+RUN rm -f /etc/nginx/sites-enabled/default && \
+    ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Copy supervisor configuration
 RUN mkdir -p /etc/supervisor/conf.d
@@ -54,7 +55,7 @@ RUN chmod +x /entrypoint.sh
 RUN mkdir -p /var/run/php
 
 # Expose port 80
-EXPOSE 80
+EXPOSE 8080
 
 # Start supervisor
 ENTRYPOINT ["/entrypoint.sh"]
