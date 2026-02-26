@@ -40,7 +40,7 @@ RUN npm install && npm run build
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/sites-available/default
-RUN ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
 
 # Copy supervisor configuration
 RUN mkdir -p /etc/supervisor/conf.d
